@@ -6,6 +6,7 @@
 #include <string>
 #include <functional>
 #include <csignal>
+#include "crow_all.h"
 
 // Replace with your Discord Application ID
 const uint64_t APPLICATION_ID = 1398894706611458221;
@@ -16,6 +17,22 @@ std::atomic<bool> running = true;
 // Signal handler to stop the application
 void signalHandler(int signum) {
   running.store(false);
+}
+
+discordpp::Activity updatePresence(const std::string state, const std::string details, const std::string largeImage, const std::string largeText, const std::string smallImage, const std::string smallText) {
+    discordpp::Activity activity;
+    activity.SetType(discordpp::ActivityTypes::Playing);
+    activity.SetState(state);
+    activity.SetDetails(details);
+
+    discordpp::ActivityAssets assets;
+    assets.SetLargeImage(largeImage);
+    assets.SetLargeText(largeText);
+    assets.SetSmallImage(smallImage);
+    assets.SetSmallText(smallText);
+    activity.SetAssets(assets);
+
+    return activity;
 }
 
 int main() {
@@ -39,20 +56,48 @@ int main() {
           std::cout << "👥 Friends Count: " << client->GetRelationships().size() << std::endl;
 
           // Configure rich presence details
-          discordpp::Activity activity;
-          activity.SetType(discordpp::ActivityTypes::Playing);
-          activity.SetState("In Competitive Match");
-          activity.SetDetails("Rank: Diamond II");
+          discordpp::Activity activity = updatePresence(
+              "Experience: Presence Plugin",
+              "Editing DiscordPresence",
+              "script_light_icon",
+              "Editing a Script",
+              "roblox-studio-icon-filled-256",
+              "Roblox Studio"
+          );
+          client->UpdateRichPresence(activity, {});
+          
+          //// Crow
+          crow::SimpleApp app;
 
-          // Update rich presence
-          client->UpdateRichPresence(activity, [](discordpp::ClientResult result) {
-              if (result.Successful()) {
-                  std::cout << "🎮 Rich Presence updated successfully!\n";
+          CROW_ROUTE(app, "/updateRobloxPresence").methods("POST"_method)
+              ([client](const crow::request& req) {
+              try {
+                  auto body = crow::json::load(req.body);
+                  if (!body) {
+                      return crow::response(400, "Invalid JSON");
+                  }
+
+
+                  std::cout << "Body Size: " << body.keys().size() << std::endl;
+
+                  std::string state = body["state"].s();
+                  std::string details = body["details"].s();
+                  std::string largeImage = body["largeImage"].s();
+                  std::string largeText = body["largeText"].s();
+                  std::string smallImage = body["smallImage"].s();
+                  std::string smallText = body["smallText"].s();
+
+                  discordpp::Activity activity = updatePresence(state, details, largeImage, largeText, smallImage, smallText);
+                  client->UpdateRichPresence(activity, {});
+                  return crow::response(200, "Presence Updated");
               }
-              else {
-                  std::cerr << "❌ Rich Presence update failed";
+              catch (const std::exception& e) {
+                  return crow::response(500, e.what());
               }
           });
+
+          std::cout << "Listening on http://localhost:3000\n";
+          app.port(3000).multithreaded().run();
       }
       else if (error != discordpp::Client::Error::None) {
           std::cerr << "❌ Connection Error: " << discordpp::Client::ErrorToString(error) << " - Details: " << errorDetail << std::endl;
