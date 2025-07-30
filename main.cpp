@@ -7,6 +7,7 @@
 #include <functional>
 #include <csignal>
 #include "crow_all.h"
+#include <ctime>
 
 // Replace with your Discord Application ID
 const uint64_t APPLICATION_ID = 1398894706611458221;
@@ -19,7 +20,7 @@ void signalHandler(int signum) {
   running.store(false);
 }
 
-discordpp::Activity updatePresence(const std::string state, const std::string details, const std::string largeImage, const std::string largeText, const std::string smallImage, const std::string smallText) {
+discordpp::Activity updatePresence(const std::string state, const std::string details, const std::string largeImage, const std::string largeText, const std::string smallImage, const std::string smallText, const int start) {
     discordpp::Activity activity;
     activity.SetType(discordpp::ActivityTypes::Playing);
     activity.SetState(state);
@@ -31,6 +32,10 @@ discordpp::Activity updatePresence(const std::string state, const std::string de
     assets.SetSmallImage(smallImage);
     assets.SetSmallText(smallText);
     activity.SetAssets(assets);
+
+    discordpp::ActivityTimestamps timestamps;
+    timestamps.SetStart(start);
+    activity.SetTimestamps(timestamps);
 
     return activity;
 }
@@ -55,14 +60,18 @@ int main() {
           // Access initial relationships data
           std::cout << "👥 Friends Count: " << client->GetRelationships().size() << std::endl;
 
+          std::time_t currentTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+          long long epochTime = static_cast<long long>(currentTime);
+
           // Configure rich presence details
           discordpp::Activity activity = updatePresence(
-              "Experience: Presence Plugin",
-              "Editing DiscordPresence",
-              "script_light_icon",
-              "Editing a Script",
+              "",
+              "Idling",
+              "roblox-presence-icon",
+              "Idling",
               "roblox-studio-icon-filled-256",
-              "Roblox Studio"
+              "Roblox Studio",
+              epochTime
           );
           client->UpdateRichPresence(activity, {});
           
@@ -77,21 +86,22 @@ int main() {
                       return crow::response(400, "Invalid JSON");
                   }
 
-
-                  std::cout << "Body Size: " << body.keys().size() << std::endl;
-
                   std::string state = body["state"].s();
                   std::string details = body["details"].s();
                   std::string largeImage = body["largeImage"].s();
                   std::string largeText = body["largeText"].s();
                   std::string smallImage = body["smallImage"].s();
                   std::string smallText = body["smallText"].s();
+                  std::string startString = body["start"].s();
 
-                  discordpp::Activity activity = updatePresence(state, details, largeImage, largeText, smallImage, smallText);
+                  int start = std::stoi(startString);
+
+                  discordpp::Activity activity = updatePresence(state, details, largeImage, largeText, smallImage, smallText, start);
                   client->UpdateRichPresence(activity, {});
                   return crow::response(200, "Presence Updated");
               }
               catch (const std::exception& e) {
+                  std::cerr << "Failed to parse JSON: " << e.what() << std::endl;
                   return crow::response(500, e.what());
               }
           });
