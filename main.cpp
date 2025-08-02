@@ -8,6 +8,7 @@
 #include <csignal>
 #include "crow_all.h"
 #include <ctime>
+#include <windows.h>
 
 // Replace with your Discord Application ID
 const uint64_t APPLICATION_ID = 1398894706611458221;
@@ -40,7 +41,7 @@ discordpp::Activity updatePresence(const std::string state, const std::string de
     return activity;
 }
 
-int main() {
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
   std::signal(SIGINT, signalHandler);
   std::cout << "🚀 Initializing Discord SDK...\n";
 
