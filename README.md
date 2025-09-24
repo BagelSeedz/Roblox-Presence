@@ -1,6 +1,4 @@
-# Roblox Studio Discord Presence - Release Notes
-
-## Version 1.0.0 – Initial Public Release
+# Version 1.0.0 – Initial Public Release
 
 ### Overview
 This is the first official release of **Roblox Studio Discord Presence**, a lightweight integration that displays your Roblox Studio activity on your Discord profile using Discord Rich Presence.
