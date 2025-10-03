@@ -3,6 +3,9 @@
 ### Overview
 This is the first official release of **Roblox Studio Discord Presence**, a lightweight integration that displays your Roblox Studio activity on your Discord profile using Discord Rich Presence.
 
+![Editing a LocalScript](https://cdn.discordapp.com/attachments/884216441618980864/1423719130321916065/image.png?ex=68e15544&is=68e003c4&hm=b43c292f62b6641b8f13d1e886a70ab7c787e69a0241aa6573f90786b81c7abe&)
+
+
 The system is split into two components:
 - A **Roblox Studio Plugin** that gathers session activity.
 - A **C++ Desktop Application** that relays data to Discord.
